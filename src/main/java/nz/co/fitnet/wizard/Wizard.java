@@ -2,15 +2,15 @@ package nz.co.fitnet.wizard;
 
 import java.util.Iterator;
 
-public class Wizard {
-	private WizardStep activeStep;
-	private final WizardModel model;
+public class Wizard<M extends WizardModel<S>, S extends WizardStep<M>> {
+	private S activeStep;
+	private final M model;
 
 	private final boolean overviewVisible = true;
 
 	private boolean canceled = false;
 
-	public Wizard(final WizardModel model) {
+	public Wizard(final M model) {
 		if (model == null) {
 			throw new NullPointerException("models is null");
 		}
@@ -22,7 +22,7 @@ public class Wizard {
 			}
 		});
 
-		for (final Iterator<WizardStep> iter = model.stepIterator(); iter.hasNext();) {
+		for (final Iterator<S> iter = model.stepIterator(); iter.hasNext();) {
 			iter.next().init(this.model);
 		}
 
@@ -32,9 +32,9 @@ public class Wizard {
 	public void reset() {
 		canceled = false;
 		getModel().reset();
-	};
+	}
 
-	public WizardModel getModel() {
+	public M getModel() {
 		return model;
 	}
 
@@ -43,7 +43,7 @@ public class Wizard {
 	}
 
 	public void cancel() {
-		final WizardStep activeStep = getModel().getActiveStep();
+		final S activeStep = getModel().getActiveStep();
 		if (activeStep != null && activeStep.isBusy()) {
 			activeStep.abortBusy();
 		}
@@ -53,6 +53,10 @@ public class Wizard {
 
 	public boolean wasCanceled() {
 		return canceled;
+	}
+
+	public S getActiveStep() {
+		return getModel().getActiveStep();
 	}
 
 	public void nextStep() throws InvalidStateException {
@@ -69,14 +73,13 @@ public class Wizard {
 		model.lastStep();
 	}
 
-	public void finis() throws InvalidStateException {
-		final WizardStep finishStep = model.getActiveStep();
+	public void finish() throws InvalidStateException {
+		final S finishStep = model.getActiveStep();
 		finishStep.applyState();
 	}
 
 	private void handleStepChange() {
 		activeStep = model.getActiveStep();
-
 		activeStep.prepare();
 	}
 }

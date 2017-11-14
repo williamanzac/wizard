@@ -3,8 +3,8 @@ package nz.co.fitnet.wizard;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
-public abstract class AbstractWizardModel implements WizardModel {
-	private WizardStep activeStep;
+public abstract class AbstractWizardModel<S extends WizardStep<?>> implements WizardModel<S> {
+	private S activeStep;
 	private boolean previousAvailable;
 	private boolean nextAvailable;
 	private boolean lastAvailable;
@@ -23,13 +23,13 @@ public abstract class AbstractWizardModel implements WizardModel {
 	}
 
 	@Override
-	public WizardStep getActiveStep() {
+	public S getActiveStep() {
 		return activeStep;
 	}
 
-	protected void setActiveStep(final WizardStep activeStep) {
+	protected void setActiveStep(final S activeStep) {
 		if (this.activeStep != activeStep) {
-			final WizardStep old = this.activeStep;
+			final S old = this.activeStep;
 			this.activeStep = activeStep;
 			pcs.firePropertyChange("activeStep", old, activeStep);
 			refreshModelState();
@@ -120,7 +120,7 @@ public abstract class AbstractWizardModel implements WizardModel {
 		pcs.removePropertyChangeListener(propertyName, listener);
 	}
 
-	protected void addCompleteListener(final WizardStep step) {
+	protected void addCompleteListener(final WizardStep<?> step) {
 		step.addPropertyChangeListener(completeListener);
 	}
 }

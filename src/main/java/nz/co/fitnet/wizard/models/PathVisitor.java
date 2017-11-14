@@ -1,7 +1,10 @@
 package nz.co.fitnet.wizard.models;
 
-public interface PathVisitor {
-	public void visitPath(SimplePath path);
+import nz.co.fitnet.wizard.WizardModel;
+import nz.co.fitnet.wizard.WizardStep;
 
-	public void visitPath(BranchingPath path);
+public interface PathVisitor<W extends WizardModel<S>, S extends WizardStep<W>> {
+	public void visitPath(SimplePath<W, S> path);
+
+	public void visitPath(BranchingPath<W, S> path);
 }

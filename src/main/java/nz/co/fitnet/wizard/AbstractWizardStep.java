@@ -3,7 +3,7 @@ package nz.co.fitnet.wizard;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
-public abstract class AbstractWizardStep implements WizardStep {
+public abstract class AbstractWizardStep<M extends WizardModel<?>> implements WizardStep<M> {
 	private final PropertyChangeSupport pcs;
 
 	private String name;
@@ -92,7 +92,7 @@ public abstract class AbstractWizardStep implements WizardStep {
 	}
 
 	@Override
-	public abstract void init(WizardModel model);
+	public abstract void init(M model);
 
 	@Override
 	public void abortBusy() {

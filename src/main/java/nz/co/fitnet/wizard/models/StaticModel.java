@@ -9,9 +9,9 @@ import java.util.List;
 import nz.co.fitnet.wizard.AbstractWizardModel;
 import nz.co.fitnet.wizard.WizardStep;
 
-public class StaticModel extends AbstractWizardModel {
+public class StaticModel extends AbstractWizardModel<WizardStep<StaticModel>> {
 
-	private final List<WizardStep> steps = new ArrayList<>();
+	private final List<WizardStep<StaticModel>> steps = new ArrayList<>();
 
 	private int currentStep = 0;
 
@@ -51,16 +51,16 @@ public class StaticModel extends AbstractWizardModel {
 	}
 
 	@Override
-	public boolean isLastStep(final WizardStep step) {
+	public boolean isLastStep(final WizardStep<StaticModel> step) {
 		return steps.indexOf(step) == steps.size() - 1;
 	}
 
 	@Override
-	public Iterator<WizardStep> stepIterator() {
+	public Iterator<WizardStep<StaticModel>> stepIterator() {
 		return unmodifiableList(steps).iterator();
 	}
 
-	public void add(final WizardStep step) {
+	public void add(final WizardStep<StaticModel> step) {
 		steps.add(step);
 		addCompleteListener(step);
 	}
@@ -74,7 +74,7 @@ public class StaticModel extends AbstractWizardModel {
 	}
 
 	public boolean allStepsComplete() {
-		for (final WizardStep element : steps) {
+		for (final WizardStep<StaticModel> element : steps) {
 			if (!element.isComplete()) {
 				return false;
 			}

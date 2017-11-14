@@ -8,21 +8,21 @@ import java.util.Stack;
 import nz.co.fitnet.wizard.AbstractWizardModel;
 import nz.co.fitnet.wizard.WizardStep;
 
-public class MultiPathModel extends AbstractWizardModel {
-	private final Path firstPath;
-	private final Path lastPath;
-	private final Map<WizardStep, Path> pathMapping;
+public class MultiPathModel<M extends MultiPathModel<?, S>, S extends WizardStep<M>> extends AbstractWizardModel<S> {
+	private final Path<M, S> firstPath;
+	private final Path<M, S> lastPath;
+	private final Map<S, Path<M, S>> pathMapping;
 
-	private final Stack<WizardStep> history = new Stack<>();
+	private final Stack<S> history = new Stack<>();
 
-	public MultiPathModel(final Path firstPath) {
+	public MultiPathModel(final Path<M, S> firstPath) {
 		this.firstPath = firstPath;
 
-		final PathMapVisitor visitor = new PathMapVisitor();
+		final PathMapVisitor<M, S> visitor = new PathMapVisitor<>();
 		firstPath.acceptVisitor(visitor);
 		pathMapping = visitor.getMap();
 
-		final LastPathVisitor v = new LastPathVisitor();
+		final LastPathVisitor<M, S> v = new LastPathVisitor<>();
 		firstPath.acceptVisitor(v);
 		lastPath = v.getPath();
 
@@ -30,26 +30,27 @@ public class MultiPathModel extends AbstractWizardModel {
 			throw new IllegalStateException("Unable to locate last path");
 		}
 
-		for (final WizardStep element : pathMapping.keySet()) {
+		for (final WizardStep<M> element : pathMapping.keySet()) {
 			addCompleteListener(element);
 		}
 	}
 
-	public Path getFirstPath() {
+	public Path<M, S> getFirstPath() {
 		return firstPath;
 	}
 
-	public Path getLastPath() {
+	public Path<M, S> getLastPath() {
 		return lastPath;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void nextStep() {
-		final WizardStep currentStep = getActiveStep();
-		final Path currentPath = getPathForStep(currentStep);
+		final S currentStep = getActiveStep();
+		final Path<M, S> currentPath = getPathForStep(currentStep);
 
 		if (currentPath.isLastStep(currentStep)) {
-			final Path nextPath = currentPath.getNextPath(this);
+			final Path<M, S> nextPath = currentPath.getNextPath((M) this);
 			setActiveStep(nextPath.firstStep());
 		} else {
 			setActiveStep(currentPath.nextStep(currentStep));
@@ -60,35 +61,35 @@ public class MultiPathModel extends AbstractWizardModel {
 
 	@Override
 	public void previousStep() {
-		final WizardStep step = history.pop();
+		final S step = history.pop();
 		setActiveStep(step);
 	}
 
 	@Override
 	public void lastStep() {
 		history.push(getActiveStep());
-		final WizardStep lastStep = getLastPath().lastStep();
+		final S lastStep = getLastPath().lastStep();
 		setActiveStep(lastStep);
 	}
 
 	@Override
 	public void reset() {
 		history.clear();
-		final WizardStep firstStep = firstPath.firstStep();
+		final S firstStep = firstPath.firstStep();
 		setActiveStep(firstStep);
 		history.push(firstStep);
 	}
 
 	@Override
-	public boolean isLastStep(final WizardStep step) {
-		final Path path = getPathForStep(step);
+	public boolean isLastStep(final S step) {
+		final Path<M, S> path = getPathForStep(step);
 		return path.equals(getLastPath()) && path.isLastStep(step);
 	}
 
 	@Override
 	public void refreshModelState() {
-		final WizardStep activeStep = getActiveStep();
-		final Path activePath = getPathForStep(activeStep);
+		final S activeStep = getActiveStep();
+		final Path<M, S> activePath = getPathForStep(activeStep);
 
 		setNextAvailable(activeStep.isComplete() && !isLastStep(activeStep));
 		setPreviousAvailable(!(activePath.equals(firstPath) && activePath.isFirstStep(activeStep)));
@@ -97,7 +98,7 @@ public class MultiPathModel extends AbstractWizardModel {
 	}
 
 	public boolean allStepsComplete() {
-		for (final Iterator<WizardStep> iterator = stepIterator(); iterator.hasNext();) {
+		for (final Iterator<S> iterator = stepIterator(); iterator.hasNext();) {
 			if (!iterator.next().isComplete()) {
 				return false;
 			}
@@ -107,19 +108,20 @@ public class MultiPathModel extends AbstractWizardModel {
 	}
 
 	@Override
-	public Iterator<WizardStep> stepIterator() {
+	public Iterator<S> stepIterator() {
 		return pathMapping.keySet().iterator();
 	}
 
-	protected Path getPathForStep(final WizardStep step) {
+	protected Path<M, S> getPathForStep(final S step) {
 		return pathMapping.get(step);
 	}
 
-	private class LastPathVisitor extends AbstractPathVisitor {
-		private Path last;
+	private class LastPathVisitor<W extends MultiPathModel<?, T>, T extends WizardStep<W>>
+			extends AbstractPathVisitor<W, T> {
+		private Path<W, T> last;
 
 		@Override
-		public void visitPath(final SimplePath p) {
+		public void visitPath(final SimplePath<W, T> p) {
 			if (enter(p)) {
 				if (p.getNextPath() == null) {
 					if (last != null) {
@@ -133,25 +135,26 @@ public class MultiPathModel extends AbstractWizardModel {
 		}
 
 		@Override
-		public void visitPath(final BranchingPath path) {
+		public void visitPath(final BranchingPath<W, T> path) {
 			if (enter(path)) {
 				path.visitBranches(this);
 			}
 		}
 
-		public Path getPath() {
+		public Path<W, T> getPath() {
 			return last;
 		}
 	}
 
-	private class PathMapVisitor extends AbstractPathVisitor {
-		private final Map<WizardStep, Path> map = new HashMap<>();
+	private class PathMapVisitor<W extends MultiPathModel<?, T>, T extends WizardStep<W>>
+			extends AbstractPathVisitor<W, T> {
+		private final Map<T, Path<W, T>> map = new HashMap<>();
 
 		public PathMapVisitor() {
 		}
 
 		@Override
-		public void visitPath(final SimplePath path) {
+		public void visitPath(final SimplePath<W, T> path) {
 			if (enter(path)) {
 				populateMap(path);
 				path.visitNextPath(this);
@@ -159,20 +162,20 @@ public class MultiPathModel extends AbstractWizardModel {
 		}
 
 		@Override
-		public void visitPath(final BranchingPath path) {
+		public void visitPath(final BranchingPath<W, T> path) {
 			if (enter(path)) {
 				populateMap(path);
 				path.visitBranches(this);
 			}
 		}
 
-		private void populateMap(final Path path) {
-			for (final WizardStep step : path.getSteps()) {
+		private void populateMap(final Path<W, T> path) {
+			for (final T step : path.getSteps()) {
 				map.put(step, path);
 			}
 		}
 
-		public Map<WizardStep, Path> getMap() {
+		public Map<T, Path<W, T>> getMap() {
 			return map;
 		}
 	}

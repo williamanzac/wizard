@@ -3,7 +3,7 @@ package nz.co.fitnet.wizard;
 import java.beans.PropertyChangeListener;
 import java.util.Iterator;
 
-public interface WizardModel {
+public interface WizardModel<S extends WizardStep<?>> {
 	boolean isPreviousAvailable();
 
 	boolean isNextAvailable();
@@ -20,11 +20,11 @@ public interface WizardModel {
 
 	void reset();
 
-	WizardStep getActiveStep();
+	S getActiveStep();
 
-	boolean isLastStep(WizardStep step);
+	boolean isLastStep(S step);
 
-	Iterator<WizardStep> stepIterator();
+	Iterator<S> stepIterator();
 
 	void addPropertyChangeListener(PropertyChangeListener listener);
 

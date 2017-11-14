@@ -2,7 +2,7 @@ package nz.co.fitnet.wizard;
 
 import java.beans.PropertyChangeListener;
 
-public interface WizardStep {
+public interface WizardStep<M extends WizardModel<?>> {
 	String getName();
 
 	String getSummary();
@@ -15,7 +15,7 @@ public interface WizardStep {
 
 	boolean isBusy();
 
-	void init(WizardModel model);
+	void init(M model);
 
 	void prepare();
 

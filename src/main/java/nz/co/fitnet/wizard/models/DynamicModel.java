@@ -10,27 +10,28 @@ import java.util.Stack;
 import nz.co.fitnet.wizard.AbstractWizardModel;
 import nz.co.fitnet.wizard.WizardStep;
 
-public class DynamicModel extends AbstractWizardModel {
+public class DynamicModel extends AbstractWizardModel<WizardStep<DynamicModel>> {
 
-	public static final Condition TRUE_CONDITION = model -> true;
+	public static final Condition<DynamicModel> TRUE_CONDITION = model -> true;
 
-	private final List<WizardStep> steps = new ArrayList<>();
-	private final List<Condition> conditions = new ArrayList<>();
+	private final List<WizardStep<DynamicModel>> steps = new ArrayList<>();
+	private final List<Condition<DynamicModel>> conditions = new ArrayList<>();
 
-	private final Stack<WizardStep> history = new Stack<>();
+	private final Stack<WizardStep<DynamicModel>> history = new Stack<>();
 
 	public DynamicModel() {
 	}
 
-	public void add(final WizardStep step) {
+	@SuppressWarnings("unchecked")
+	public void add(final WizardStep<DynamicModel> step) {
 		if (step instanceof Condition) {
-			add(step, (Condition) step);
+			add(step, (Condition<DynamicModel>) step);
 		} else {
 			add(step, TRUE_CONDITION);
 		}
 	}
 
-	public void add(final WizardStep step, final Condition condition) {
+	public void add(final WizardStep<DynamicModel> step, final Condition<DynamicModel> condition) {
 		addCompleteListener(step);
 		steps.add(step);
 		conditions.add(condition);
@@ -38,20 +39,20 @@ public class DynamicModel extends AbstractWizardModel {
 
 	@Override
 	public void nextStep() {
-		final WizardStep currentStep = getActiveStep();
+		final WizardStep<DynamicModel> currentStep = getActiveStep();
 		history.push(currentStep);
 		setActiveStep(findNextVisibleStep(currentStep));
 	}
 
 	@Override
 	public void previousStep() {
-		final WizardStep step = history.pop();
+		final WizardStep<DynamicModel> step = history.pop();
 		setActiveStep(step);
 	}
 
 	@Override
 	public void lastStep() {
-		final WizardStep activeStep = getActiveStep();
+		final WizardStep<DynamicModel> activeStep = getActiveStep();
 		history.push(activeStep);
 		setActiveStep(findLastStep());
 	}
@@ -63,13 +64,13 @@ public class DynamicModel extends AbstractWizardModel {
 	}
 
 	@Override
-	public boolean isLastStep(final WizardStep step) {
+	public boolean isLastStep(final WizardStep<DynamicModel> step) {
 		return findLastStep().equals(step);
 	}
 
 	@Override
 	public void refreshModelState() {
-		final WizardStep activeStep = getActiveStep();
+		final WizardStep<DynamicModel> activeStep = getActiveStep();
 		setNextAvailable(activeStep != null && activeStep.isComplete() && !isLastStep(activeStep));
 		setPreviousAvailable(activeStep != null && !history.isEmpty());
 		setLastAvailable(activeStep != null && allStepsComplete() && !isLastStep(activeStep));
@@ -78,8 +79,8 @@ public class DynamicModel extends AbstractWizardModel {
 
 	public boolean allStepsComplete() {
 		for (int i = 0; i < steps.size(); i++) {
-			final WizardStep step = steps.get(i);
-			final Condition condition = conditions.get(i);
+			final WizardStep<DynamicModel> step = steps.get(i);
+			final Condition<DynamicModel> condition = conditions.get(i);
 			if (condition.evaluate(this)) {
 				if (!step.isComplete()) {
 					return false;
@@ -91,15 +92,15 @@ public class DynamicModel extends AbstractWizardModel {
 	}
 
 	@Override
-	public Iterator<WizardStep> stepIterator() {
+	public Iterator<WizardStep<DynamicModel>> stepIterator() {
 		return unmodifiableList(steps).iterator();
 	}
 
-	private WizardStep findNextVisibleStep(final WizardStep currentStep) {
+	private WizardStep<DynamicModel> findNextVisibleStep(final WizardStep<DynamicModel> currentStep) {
 		final int startIndex = currentStep == null ? 0 : steps.indexOf(currentStep) + 1;
 
 		for (int i = startIndex; i < conditions.size(); i++) {
-			final Condition condition = conditions.get(i);
+			final Condition<DynamicModel> condition = conditions.get(i);
 			if (condition.evaluate(this)) {
 				return steps.get(i);
 			}
@@ -108,9 +109,9 @@ public class DynamicModel extends AbstractWizardModel {
 		throw new IllegalStateException("Wizard contains no more visible steps");
 	}
 
-	private WizardStep findLastStep() {
+	private WizardStep<DynamicModel> findLastStep() {
 		for (int i = conditions.size() - 1; i >= 0; i--) {
-			final Condition condition = conditions.get(i);
+			final Condition<DynamicModel> condition = conditions.get(i);
 			if (condition.evaluate(this)) {
 				return steps.get(i);
 			}
