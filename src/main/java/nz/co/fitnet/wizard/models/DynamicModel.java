@@ -32,13 +32,15 @@ public class DynamicModel extends AbstractWizardModel<WizardStep<DynamicModel>> 
 	}
 
 	public void add(final WizardStep<DynamicModel> step, final Condition<DynamicModel> condition) {
-		addCompleteListener(step);
 		steps.add(step);
 		conditions.add(condition);
 	}
 
 	@Override
 	public void nextStep() {
+		if (!isNextAvailable()) {
+			throw new IllegalStateException("Next is not available");
+		}
 		final WizardStep<DynamicModel> currentStep = getActiveStep();
 		history.push(currentStep);
 		setActiveStep(findNextVisibleStep(currentStep));
@@ -46,12 +48,18 @@ public class DynamicModel extends AbstractWizardModel<WizardStep<DynamicModel>> 
 
 	@Override
 	public void previousStep() {
+		if (!isPreviousAvailable()) {
+			throw new IllegalStateException("Previous is not available");
+		}
 		final WizardStep<DynamicModel> step = history.pop();
 		setActiveStep(step);
 	}
 
 	@Override
 	public void lastStep() {
+		if (!isLastAvailable()) {
+			throw new IllegalStateException("Last is not available");
+		}
 		final WizardStep<DynamicModel> activeStep = getActiveStep();
 		history.push(activeStep);
 		setActiveStep(findLastStep());

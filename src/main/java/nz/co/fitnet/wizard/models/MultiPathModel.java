@@ -29,10 +29,6 @@ public class MultiPathModel<M extends MultiPathModel<?, S>, S extends WizardStep
 		if (lastPath == null) {
 			throw new IllegalStateException("Unable to locate last path");
 		}
-
-		for (final WizardStep<M> element : pathMapping.keySet()) {
-			addCompleteListener(element);
-		}
 	}
 
 	public Path<M, S> getFirstPath() {
@@ -46,6 +42,9 @@ public class MultiPathModel<M extends MultiPathModel<?, S>, S extends WizardStep
 	@SuppressWarnings("unchecked")
 	@Override
 	public void nextStep() {
+		if (!isNextAvailable()) {
+			throw new IllegalStateException("Next is not available");
+		}
 		final S currentStep = getActiveStep();
 		final Path<M, S> currentPath = getPathForStep(currentStep);
 
@@ -61,12 +60,18 @@ public class MultiPathModel<M extends MultiPathModel<?, S>, S extends WizardStep
 
 	@Override
 	public void previousStep() {
+		if (!isPreviousAvailable()) {
+			throw new IllegalStateException("Previous is not available");
+		}
 		final S step = history.pop();
 		setActiveStep(step);
 	}
 
 	@Override
 	public void lastStep() {
+		if (!isLastAvailable()) {
+			throw new IllegalStateException("Last is not available");
+		}
 		history.push(getActiveStep());
 		final S lastStep = getLastPath().lastStep();
 		setActiveStep(lastStep);

@@ -16,11 +16,6 @@ public class Wizard<M extends WizardModel<S>, S extends WizardStep<M>> {
 		}
 
 		this.model = model;
-		this.model.addPropertyChangeListener(evt -> {
-			if (evt.getPropertyName().equals("activeStep")) {
-				handleStepChange();
-			}
-		});
 
 		for (final Iterator<S> iter = model.stepIterator(); iter.hasNext();) {
 			iter.next().init(this.model);
@@ -62,15 +57,18 @@ public class Wizard<M extends WizardModel<S>, S extends WizardStep<M>> {
 	public void nextStep() throws InvalidStateException {
 		model.getActiveStep().applyState();
 		model.nextStep();
+		handleStepChange();
 	}
 
 	public void previousStep() {
 		model.previousStep();
+		handleStepChange();
 	}
 
 	public void lastStep() throws InvalidStateException {
 		model.getActiveStep().applyState();
 		model.lastStep();
+		handleStepChange();
 	}
 
 	public void finish() throws InvalidStateException {

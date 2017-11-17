@@ -26,6 +26,9 @@ public class StaticModel extends AbstractWizardModel<WizardStep<StaticModel>> {
 
 	@Override
 	public void nextStep() {
+		if (!isNextAvailable()) {
+			throw new IllegalStateException("Next is not available");
+		}
 		if (currentStep >= steps.size() - 1) {
 			throw new IllegalStateException("Already on last step");
 		}
@@ -36,6 +39,9 @@ public class StaticModel extends AbstractWizardModel<WizardStep<StaticModel>> {
 
 	@Override
 	public void previousStep() {
+		if (!isPreviousAvailable()) {
+			throw new IllegalStateException("Previous is not available");
+		}
 		if (currentStep == 0) {
 			throw new IllegalStateException("Already at first step");
 		}
@@ -46,6 +52,9 @@ public class StaticModel extends AbstractWizardModel<WizardStep<StaticModel>> {
 
 	@Override
 	public void lastStep() {
+		if (!isLastAvailable()) {
+			throw new IllegalStateException("Last is not available");
+		}
 		currentStep = steps.size() - 1;
 		setActiveStep(steps.get(currentStep));
 	}
@@ -62,7 +71,6 @@ public class StaticModel extends AbstractWizardModel<WizardStep<StaticModel>> {
 
 	public void add(final WizardStep<StaticModel> step) {
 		steps.add(step);
-		addCompleteListener(step);
 	}
 
 	@Override
