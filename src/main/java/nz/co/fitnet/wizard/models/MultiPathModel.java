@@ -1,7 +1,7 @@
 package nz.co.fitnet.wizard.models;
 
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Stack;
 
@@ -153,7 +153,7 @@ public class MultiPathModel<M extends MultiPathModel<?, S>, S extends WizardStep
 
 	private class PathMapVisitor<W extends MultiPathModel<?, T>, T extends WizardStep<W>>
 			extends AbstractPathVisitor<W, T> {
-		private final Map<T, Path<W, T>> map = new HashMap<>();
+		private final Map<T, Path<W, T>> map = new LinkedHashMap<>();
 
 		public PathMapVisitor() {
 		}
