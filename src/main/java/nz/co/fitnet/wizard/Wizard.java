@@ -76,7 +76,7 @@ public class Wizard<M extends WizardModel<S>, S extends WizardStep<M>> {
 		finishStep.applyState();
 	}
 
-	private void handleStepChange() {
+	protected void handleStepChange() {
 		activeStep = model.getActiveStep();
 		activeStep.prepare();
 	}

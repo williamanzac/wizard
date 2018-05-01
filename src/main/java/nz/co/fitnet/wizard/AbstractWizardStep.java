@@ -35,9 +35,6 @@ public abstract class AbstractWizardStep<M extends WizardModel<?>> implements Wi
 	}
 
 	@Override
-	public abstract void init(M model);
-
-	@Override
 	public void abortBusy() {
 	}
 }
